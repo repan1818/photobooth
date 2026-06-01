@@ -1,90 +1,80 @@
 let selectedFrameSrc = 'spiderman 2.png';
 let capturedImages = [];
-let countdownInterval = null; // Di-set null dulu biar ga crash pas awal load
+let countdownInterval = null;
 
-// ==========================================
-// 2. FUNGSI AKSES & NYALAKAN WEBCAM
-// ==========================================
+function pilihFrameDanLanjut(namaFrame) {
+    selectedFrameSrc = namaFrame;
+    pindahHalaman(3);
+}
+
 function bukaKamera() {
     const video = document.getElementById('video');
-    if (!video) {
-        console.error("Elemen video tidak ditemukan!");
-        return;
-    }
+    if (!video) return;
+
+    const framePreview = document.getElementById('frame-preview');
+    if (framePreview) framePreview.src = selectedFrameSrc;
+
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia({ video: true })
         .then(function(stream) {
             video.srcObject = stream;
-            console.log("Webcam berhasil dinyalakan!");
         })
         .catch(function(err) {
-            console.error("Gagal akses webcam: ", err);
+            alert("Gagal akses kamera. Pastikan izin kamera sudah diberikan di browser.");
         });
-    }
-}
-
-// ==========================================
-// 3. FUNGSI MANAJEMEN PINDAH HALAMAN
-// ==========================================
-function pindahHalaman(nomor) {
-    console.log("Pindah ke halaman:", nomor);
-    const p1 = document.getElementById('page-1');
-    const p2 = document.getElementById('page-2');
-    const p3 = document.getElementById('page-3');
-    const workspace = document.querySelector('.photo-booth-workspace');
-
-    if (p1) p1.style.display = 'none';
-    if (p2) p2.style.display = 'none';
-    if (p3) p3.style.display = 'none';
-
-    if (nomor === 1) {
-        if (p1) p1.style.display = 'block';
-        if (workspace) workspace.style.display = 'none'; 
     } else {
-        if (workspace) workspace.style.display = 'flex';
-        if (nomor === 2) {
-            if (p2) p2.style.display = 'block';
-            bukaKamera();
-        }
-        if (nomor === 3) {
-            if (p3) p3.style.display = 'block';
+        alert("Browser kamu tidak mendukung akses kamera.");
+    }
+}
+
+// FIX UTAMA: pakai class active-page, bukan style.display
+function pindahHalaman(nomor) {
+    for (let i = 1; i <= 4; i++) {
+        const page = document.getElementById('page-' + i);
+        if (page) page.classList.remove('active-page');
+    }
+
+    const target = document.getElementById('page-' + nomor);
+    if (target) target.classList.add('active-page');
+
+    if (nomor === 3) {
+        bukaKamera();
+        capturedImages = [];
+        const startBtn = document.getElementById('startCaptureBtn');
+        if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.innerText = "📷 START CAPTURE";
         }
     }
 }
 
-// ==========================================
-// 4. FUNGSI HITUNG MUNDUR & AUTOMATIC CAPTURE
-// ==========================================
 function startCountdown() {
     const startBtn = document.getElementById('startCaptureBtn');
     const countdownOverlay = document.getElementById('countdown-overlay');
     const countdownText = document.getElementById('countdown-text');
-    
-    if (startBtn) startBtn.style.display = 'none';
+
+    if (startBtn) {
+        startBtn.disabled = true;
+        startBtn.innerText = "📸 Sedang Memotret...";
+    }
     if (countdownOverlay) countdownOverlay.style.display = 'flex';
 
-    capturedImages = []; 
+    capturedImages = [];
     let photoCount = 0;
     let timer = 3;
 
     if (countdownText) countdownText.innerText = timer;
 
-    // Baru kita isi nilai intervalnya di sini pas fungsi dieksekusi
     countdownInterval = setInterval(() => {
         timer--;
         if (countdownText) countdownText.innerText = timer;
 
         if (timer <= 0) {
-            // Efek Flash
             const flash = document.createElement('div');
-            flash.style.position = 'fixed';
-            flash.style.top = '0'; flash.style.left = '0';
-            flash.style.width = '100vw'; flash.style.height = '100vh';
-            flash.style.backgroundColor = '#fff'; flash.style.zIndex = '9999';
+            flash.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:9999;';
             document.body.appendChild(flash);
-            setTimeout(() => flash.remove(), 100);
+            setTimeout(() => flash.remove(), 120);
 
-            // Capture ke canvas sementara
             const video = document.getElementById('video');
             const tempCanvas = document.createElement('canvas');
             if (video) {
@@ -96,35 +86,30 @@ function startCountdown() {
             }
 
             photoCount++;
-            console.log(`Foto ke-${photoCount} sukses!`);
 
             if (photoCount < 3) {
-                timer = 3; 
+                timer = 3;
                 if (countdownText) countdownText.innerText = timer;
             } else {
                 clearInterval(countdownInterval);
                 if (countdownOverlay) countdownOverlay.style.display = 'none';
-                if (startBtn) startBtn.style.display = 'block';
-                
-                // Eksekusi fungsi penggabungan async
                 prosesGabungStripPolaroid();
             }
         }
     }, 1000);
 }
 
-// ==========================================
-// 5. LOGIKA ASYNC GABUNG FOTO POLAROID STRIP
-// ==========================================
 async function prosesGabungStripPolaroid() {
     if (capturedImages.length < 3) return;
 
     let finalCanvas = document.getElementById('canvas-polaroid-utama');
     if (!finalCanvas) {
         finalCanvas = document.createElement('canvas');
-        finalCanvas.id = "canvas-polaroid-utama";
+        finalCanvas.id = 'canvas-polaroid-utama';
+        finalCanvas.style.display = 'none';
+        document.body.appendChild(finalCanvas);
     }
-    
+
     const w = 450;
     const h = 850;
     finalCanvas.width = w;
@@ -137,21 +122,19 @@ async function prosesGabungStripPolaroid() {
     const boxW = 400;
     const boxH = 250;
     const xPos = 25;
-    const boxYPositions = [50, 290, 530];
+    const boxYPositions = [50, 310, 570];
 
-    // Helper Promise Loader
     const loadImage = src => new Promise((resolve, reject) => {
         const img = new Image();
-        img.src = src;
         img.onload = () => resolve(img);
         img.onerror = reject;
+        img.src = src;
     });
 
     try {
-        // Render 3 foto secara sekuensial pake await async bawaan lu
         for (let index = 0; index < capturedImages.length; index++) {
             const img = await loadImage(capturedImages[index]);
-            
+
             let scale = Math.max(boxW / img.width, boxH / img.height);
             let sW = boxW / scale;
             let sH = boxH / scale;
@@ -161,17 +144,12 @@ async function prosesGabungStripPolaroid() {
             ctx.drawImage(img, sX, sY, sW, sH, xPos, boxYPositions[index], boxW, boxH);
         }
 
-        // Tempel bingkai setelah foto beres
         await renderFrameDiAtasCanvas();
-
     } catch (err) {
         console.error("Gagal memproses gambar polaroid:", err);
     }
 }
 
-// ==========================================
-// 6. LOGIKA ASYNC RENDER LAYER FRAME
-// ==========================================
 async function renderFrameDiAtasCanvas() {
     const finalCanvas = document.getElementById('canvas-polaroid-utama');
     if (!finalCanvas) return;
@@ -179,9 +157,9 @@ async function renderFrameDiAtasCanvas() {
 
     const loadImage = src => new Promise((resolve, reject) => {
         const img = new Image();
-        img.src = src;
         img.onload = () => resolve(img);
         img.onerror = reject;
+        img.src = src;
     });
 
     try {
@@ -190,61 +168,78 @@ async function renderFrameDiAtasCanvas() {
 
         const wadahPhotos = document.getElementById('photos');
         if (wadahPhotos) {
-            wadahPhotos.innerHTML = "";
+            wadahPhotos.innerHTML = '';
             const hasilGambar = new Image();
             hasilGambar.src = finalCanvas.toDataURL('image/png');
-            hasilGambar.style.width = "100%";
-            hasilGambar.style.borderRadius = "8px";
+            hasilGambar.style.cssText = 'width:100%; border-radius:8px; max-width:420px;';
             wadahPhotos.appendChild(hasilGambar);
         }
-        pindahHalaman(3);
+
+        pindahHalaman(4);
+
+        const tombolQr = document.getElementById('qrBtn');
+        const wadahContainer = document.getElementById('qrcode-container');
+        if (tombolQr) { tombolQr.innerText = "📱 GENERATE QR CODE"; tombolQr.disabled = false; }
+        if (wadahContainer) wadahContainer.style.display = 'none';
+
     } catch (err) {
         console.error("Gagal me-render frame:", err);
     }
 }
 
-// ==========================================
-// 7. FUNGSI KLIK THUMBNAIL BINGKAI
-// ==========================================
 function gantiFrameInstan(namaFileFrame) {
     selectedFrameSrc = namaFileFrame;
-    
-    const liveFrame = document.getElementById('frame-preview');
-    if (liveFrame) liveFrame.src = namaFileFrame;
-
-    const tombolQr = document.getElementById('qrBtn');
-    const wadahContainer = document.getElementById('qrcode-container');
-    if (tombolQr) {
-        tombolQr.innerText = "📱 GENERATE QR CODE";
-        tombolQr.disabled = false;
-    }
-    if (wadahContainer) wadahContainer.style.display = 'none';
-
     prosesGabungStripPolaroid();
 }
 
-// ==========================================
-// 8. FUNGSI GENERATE QR CODE
-// ==========================================
-function bikinQrCodeInstan() {
+async function bikinQrCodeInstan() {
     const finalCanvas = document.getElementById('canvas-polaroid-utama');
     const qrcodeContainer = document.getElementById('qrcode-container');
     const qrcodeDiv = document.getElementById('qrcode');
     const tombolQr = document.getElementById('qrBtn');
 
     if (!finalCanvas) return;
-    const dataUrlFotonya = finalCanvas.toDataURL('image/png');
 
-    if (qrcodeDiv) qrcodeDiv.innerHTML = "";
+    // Ubah tombol jadi loading
+    if (tombolQr) {
+        tombolQr.innerText = "⏳ Uploading...";
+        tombolQr.disabled = true;
+    }
 
     try {
+        // Kompres dulu jadi JPEG kualitas 70% biar kecil
+        const dataUrl = finalCanvas.toDataURL('image/jpeg', 0.7);
+        const base64Data = dataUrl.split(',')[1]; // Buang prefix "data:image/jpeg;base64,"
+
+        // Upload ke Imgur (anonymous, gratis, no login)
+        const response = await fetch('https://api.imgur.com/3/image', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Client-ID 546c25a59c58ad7', // Client ID publik Imgur
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                image: base64Data,
+                type: 'base64'
+            })
+        });
+
+        const result = await response.json();
+
+        if (!result.success) throw new Error('Upload gagal');
+
+        const imageUrl = result.data.link; // URL gambar hasil upload
+
+        // Baru bikin QR dari URL (pendek, pasti muat!)
+        if (qrcodeDiv) qrcodeDiv.innerHTML = '';
+
         new QRCode(qrcodeDiv, {
-            text: dataUrlFotonya,
+            text: imageUrl,
             width: 150,
             height: 150,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
         });
 
         if (qrcodeContainer) qrcodeContainer.style.display = 'block';
@@ -252,7 +247,13 @@ function bikinQrCodeInstan() {
             tombolQr.innerText = "✅ QR CODE GENERATED!";
             tombolQr.disabled = true;
         }
+
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error);
+        if (tombolQr) {
+            tombolQr.innerText = "📱 GENERATE QR CODE";
+            tombolQr.disabled = false;
+        }
+        alert("Gagal upload foto. Coba lagi ya!");
     }
 }
