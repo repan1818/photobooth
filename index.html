@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Booth SMKN 1 Subang</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="lang-switch" style="text-align: right; padding: 15px;">
+        <button onclick="setBahasa('id')">ID</button>
+        <button onclick="setBahasa('en')">EN</button>
+    </div>
+
+     <div id="page-1"class="page-container">
+        <h1 class="data-lang" data-key="judulWelcome">WELCOME TO PHOTOBOOTH X PPLG 1</h1>
+        <p class="data-lang" data-key="subWelcome">CEKREK X PPLG 1</p>
+       <button class="btn-main" onclick="pindahHalaman(2)">START CEKREK</button>
+</div>
+    <div id="page-2" class="page-container">
+        <div class="frame-selection-screen">
+            <h2>PILIH FRAME TERKEREN</h2>
+            <div class="frame-grid-layout">
+                <div class="frame-item" onclick="pilihFrameDanLanjut('spiderman 2.png')">
+                    <img src="spiderman 2.png">
+                    <p>Spiderman Edition</p>
+                </div>
+                <div class="frame-item" onclick="pilihFrameDanLanjut('bintang.png')">
+                    <img src="bintang.png">
+                    <p>Star Vintage</p>
+                </div>
+                <div class="frame-item" onclick="pilihFrameDanLanjut('vintage.png')">
+                    <img src="vintage.png">
+                    <p>Retro Aesthetic</p>
+                </div>
+                <div class="frame-item" onclick="pilihFrameDanLanjut('spongebob2.png')">
+                    <img src="spongebob2.png">
+                    <p>Bikini Bottom</p>
+                </div>
+                <div class="frame-item" onclick="pilihFrameDanLanjut('spiderman3.png')">
+                    <img src="spiderman3.png">
+                    <p>Spiderman 3</p>
+                </div>
+                <div class="frame-item" onclick="pilihFrameDanLanjut('komik baground.png')">
+                    <img src="komik baground.png">
+                    <p>aesthethic</p>
+                </div>
+                <div class="frame-item" onclick="pilihFrameDanLanjut('frame lucu.png')">
+                    <img src="frame lucu.png">
+                    <p></p>
+                </div>
+            </div>
+            <button class="btn-back" onclick="pindahHalaman(1)">⬅️ Kembali</button>
+        </div>
+    </div>
+    
+  <div id="page-3" class="page-container" style="display: none;">
+    <div class="photo-booth-workspace">
+        
+        <div class="camera-zone">
+            <div class="live-monitor">
+                <video id="video" autoplay playsinline></video>
+                <div class="live-frame-overlay">
+                    <img id="frame-preview" src="spiderman 2.png" alt="Frame Overlay">
+                </div>
+            </div>
+        </div>
+
+        <div class="pages-content-area">
+
+            <div id="page-2" class="page-container" style="display: none;">
+                <h2 class="data-lang" data-key="pilihFrame">PILIH FRAME TERKEREN</h2>
+                <button id="captureBtn" onclick="memulaiJepretBeruntun()" style="background: #007bff; color: white;">📷 START CAPTURE</button>
+            </div>
+<div id="page-3" class="page-container" style="display: none;">
+    <div class="photo-booth-workspace">
+        
+        <div class="camera-zone">
+            <div class="live-monitor">
+                <video id="video" autoplay playsinline></video>
+                <div class="live-frame-overlay">
+                    <img id="frame-preview" src="spiderman 2.png" alt="Frame Overlay">
+                </div>
+            </div>
+            <button class="btn-back-bottom" onclick="pindahHalaman(1)" style="margin-top: 15px; background: #555;">🔄 KEMBALI KE AWAL</button>
+        </div>
+
+        <div class="result-zone" id="strip-output-area">
+            <h3 class="data-lang" data-key="judulHasil">Hasil Strip Polaroid</h3>
+            
+            <div class="frame-selection-inside" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
+                <img src="spiderman3.png" onclick="gantiFrameInstan('spiderman 3.png')" style="width: 60px; height: 80px; cursor: pointer; border: 2px solid #fff; border-radius: 4px;">
+                <img src="spiderman 2.png" onclick="gantiFrameInstan('spiderman 2.png')" style="width: 60px; height: 80px; cursor: pointer; border: 2px solid #fff; border-radius: 4px;">
+                <img src="frame lucu.png" onclick="gantiFrameInstan('frame lucu.png')" style="width: 60px; height: 80px; cursor: pointer; border: 2px solid #fff; border-radius: 4px;">
+                <img src="spongebob2.png" onclick="gantiFrameInstan('spongebob2.png')" style="width: 60px; height: 80px; cursor: pointer; border: 2px solid #fff; border-radius: 4px;">
+            <img src="vintage.png" onclick="gantiFrameInstan('vintage.png')" style="width: 60px; height: 80px; cursor: pointer; border: 2px solid #fff; border-radius: 4px;">
+                <img src="komik baground.png" onclick="gantiFrameInstan('komik baground.png')" style="width: 60px; height: 80px; cursor: pointer; border: 2px solid #fff; border-radius: 4px;">
+                <img src="bintang.png" onclick="gantiFrameInstan('bintang.png')" style="width: 60px; height: 80px; cursor: pointer; border: 2px solid #fff; border-radius: 4px;">
+        </div>
+            </div>
+        </div>
+
+
+            <div id="photos"></div> 
+            
+            <button id="qrBtn" onclick="bikinQrCodeInstan()" style="background: #28a745;">📱 GENERATE QR CODE</button>
+            
+            <div id="qrcode-container" style="display: none; background: #ffffff; padding: 15px; margin: 15px auto; width: 180px; border-radius: 8px;">
+                <div id="qrcode" style="display: flex; justify-content: center;"></div>
+                <p style="color: #333; font-weight: bold; margin-top: 10px; font-size: 13px; text-align: center;">Scan Buat Download!</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+        </div> </div> <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="bahasa.js"></script>
+    <script src="pan.js"></script>
+</body>
+</html>
